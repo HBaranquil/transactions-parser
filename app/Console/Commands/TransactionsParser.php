@@ -16,7 +16,7 @@ class TransactionsParser extends Command
      *
      * @var string
      */
-    protected $signature = 'crm:parse-transaction {file_path}';
+    protected $signature = 'transactions:parse {file_path}';
 
     /**
      * The console command description.
