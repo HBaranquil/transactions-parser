@@ -3,9 +3,6 @@
 namespace App\Console\Commands;
 
 use App\CommissionFeeCalculator;
-use App\Exceptions\InvalidTransactionDateException;
-use App\Exceptions\TransactionDateNotFoundException;
-use Carbon\Carbon;
 use Illuminate\Console\Command;
 
 
@@ -45,7 +42,8 @@ class TransactionsParser extends Command
         session()->put('results', []);
 
         $filepath = $this->argument('file_path');
-        if(!file_exists($filepath)){
+
+        if (!file_exists($filepath)) {
             $this->error('Oops! Sorry, file not found');
             exit();
         }
@@ -55,10 +53,9 @@ class TransactionsParser extends Command
         while ($row = fgetcsv($file)) {
             $calculator = new CommissionFeeCalculator($row);
             $result = $calculator->execute();
-
             if ($result['successful'] == false) {
                 $this->storeResult($result['message']);
-            }else{
+            } else {
                 $this->storeResult(number_format($result['data'],'2','.',','));
             }
         }
@@ -66,16 +63,16 @@ class TransactionsParser extends Command
         $this->displayResults();
     }
 
-    private function storeResult($commissionFee)
+    private function storeResult($result)
     {
-        session()->push('results',$commissionFee);
+        session()->push('results',$result);
     }
 
     private function displayResults()
     {
         $results = session()->get('results');
 
-        foreach ($results as $result){
+        foreach ($results as $result) {
             $this->line($result);
         }
     }

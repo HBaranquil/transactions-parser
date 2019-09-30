@@ -15,8 +15,6 @@ use App\Exceptions\OperationTypeNotFoundException;
 use App\Exceptions\TransactionDateNotFoundException;
 use App\Exceptions\UserIdentifierNotFoundException;
 use App\Exceptions\UserTypeNotFoundException;
-use Illuminate\Support\Facades\Log;
-use function Symfony\Component\Debug\Tests\testHeader;
 
 class CommissionFeeCalculator
 {
@@ -32,7 +30,9 @@ class CommissionFeeCalculator
         $data = $this->data;
         $isValid = $this->validate($data);
 
-        if(!$isValid['successful'])  return $isValid;
+        if (!$isValid['successful']) {
+            return $isValid;
+        }
 
         $commissionFee = $this->calculate($data);
 
@@ -58,12 +58,12 @@ class CommissionFeeCalculator
                 $min = CommissionFee::CURRENCY_MAXIMUM_AND_MINIMUM_FEES[$currency][$operation_type]['min'];
                 $max = CommissionFee::CURRENCY_MAXIMUM_AND_MINIMUM_FEES[$currency][$operation_type]['max'];
                 if ($min) {
-                    if($commissionFee < $min){
+                    if ($commissionFee < $min) {
                         $commissionFee = $min;
                     }
                 }
                 if ($max) {
-                    if($commissionFee > $max){
+                    if ($commissionFee > $max) {
                         $commissionFee = $max;
                     }
                 }
@@ -73,18 +73,19 @@ class CommissionFeeCalculator
                 $commissionFee =  ($operationAmount * $commission);
                 $min = CommissionFee::CURRENCY_MAXIMUM_AND_MINIMUM_FEES[$currency][$operation_type][$userType]['min'];
                 $max = CommissionFee::CURRENCY_MAXIMUM_AND_MINIMUM_FEES[$currency][$operation_type][$userType]['max'];
+
                 if ($min) {
-                    if($commissionFee < $min){
+                    if ($commissionFee < $min) {
                         $commissionFee = $min;
                     }
                 }
                 if ($max) {
-                    if($commissionFee > $max){
+                    if ($commissionFee > $max) {
                         $commissionFee = $max;
                     }
                 }
             } break;
-            default:{
+            default: {
                 $commissionFee = 0;
             }
         }
