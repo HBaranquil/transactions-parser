@@ -2,12 +2,15 @@
 
 namespace App\Console\Commands;
 
-use App\CommissionFeeCalculator;
+use App\CommissionFee\Calculator;
+use App\CommissionFee\DataFormatter;
+use App\CommissionFee\dataValidator;
+use App\Currency;
 use Illuminate\Console\Command;
-
 
 class TransactionsParser extends Command
 {
+    use dataValidator, DataFormatter;
     /**
      * The name and signature of the console command.
      *
@@ -20,7 +23,7 @@ class TransactionsParser extends Command
      *
      * @var string
      */
-    protected $description = 'Parse a file to compute the commission fee based on the user type, operation type, operation amount, and currency.';
+    protected $description = 'Accepts a file and parse to compute commission charge';
 
     /**
      * Create a new command instance.
@@ -51,21 +54,30 @@ class TransactionsParser extends Command
         $file = fopen($filepath, 'r');
 
         while ($row = fgetcsv($file)) {
-            $calculator = new CommissionFeeCalculator($row);
+            $data = $this->formatData($row);
+            $isValidData = $this->validateData($data);
+
+            if (!$isValidData) {
+                $this->storeResult('Invalid Data.');
+                continue;
+            }
+
+            $currency = resolve(Currency::class)->makeByCode($data['currency']);
+            $calculator = new Calculator($currency, $data);
             $result = $calculator->execute();
-            if ($result['successful'] == false) {
-                $this->storeResult($result['message']);
+
+            if ($result['success']) {
+                $this->storeResult($result['data']);
             } else {
-                $this->storeResult(number_format($result['data'],'2','.',','));
+                $this->storeResult($result['error']);
             }
         }
-
         $this->displayResults();
     }
 
     private function storeResult($result)
     {
-        session()->push('results',$result);
+        session()->push('results', $result);
     }
 
     private function displayResults()
